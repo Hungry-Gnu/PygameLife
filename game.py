@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+########################################
+#              PyGameLife              #
+# Author  : Luke "Nukem" Jones         #
+# Email   : luke.nukem.jones@gmail.com #
+# License : GPLv3.0                    #
+########################################
+
 import pygame
 import mitosis
 from random import randint
