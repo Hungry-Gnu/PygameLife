@@ -57,6 +57,7 @@ class LifeGame:
         self.menuSurf.fill(BLACK)
         self.menuSurf.set_colorkey(BLACK)
         self.speedString = "Set speed to "
+        self.strings = {'pause':'Game Paused',  'speed':'Speed = '}
         self.simSpeed = {'1 second':60, '0.5ms':30, '0.25ms':15,
                          '0.12ms':12, '0.06ms':6, '0.03ms':3,
                          '0.02ms':2,'Realtime':1}
@@ -69,6 +70,13 @@ class LifeGame:
             text = self.font.render(self.instr[i], 1, WHITE)
             x = self.menuSurf.get_rect().centerx - text.get_rect().centerx
             self.menuSurf.blit(text,(x,100+i*40))
+            
+    def printPaused(self):
+        self.menuSurf.fill(BLACK)
+        text = self.font.render( self.strings['pause'], 1, WHITE)
+        x = self.menuSurf.get_rect().centerx - text.get_rect().centerx
+        y = self.menuSurf.get_rect().centery - text.get_rect().centery
+        self.menuSurf.blit(text,(x,y))
     
     def printMsg(self):
         self.menuSurf.fill(BLACK)
@@ -94,13 +102,16 @@ class LifeGame:
                     framecount = 0
                 elif self.firstStart == 0:
                     self.screen.fill(BLACK)
-                    self.cellLife.drawBG()
+                    self.cellLife.paused()
                 self.printHelp()
                 self.screen.blit(self.menuSurf,(0,0))
             # Paused State    
             elif self.state == 2:
                 self.screen.fill(BLACK)
-                self.menuSurf.fill(BLACK)
+                if self.firstStart == 0:
+                    self.printPaused()
+                else:
+                    self.menuSurf.fill(BLACK)
                 self.cellLife.paused()
                 self.screen.blit(self.menuSurf,(0,0))
             # Running State
@@ -144,14 +155,15 @@ class LifeGame:
                     if event.type == pygame.MOUSEBUTTONUP and event.button in (1,2,3):
                         break
             if event.type == pygame.KEYDOWN:
-                if pygame.key.get_pressed()[pygame.K_p] == 1:
-                    if self.state == 2:
-                        self.state = 3
-                    elif self.state == 3:
-                        self.state = 2
                 if pygame.key.get_pressed()[pygame.K_RETURN] == self.state == 1:
                     self.state = 2
+                if pygame.key.get_pressed()[pygame.K_ESCAPE] == 1:
+                    if   self.state == 3: self.state = 1
+                    elif self.state == 1: self.state = 3
+                if pygame.key.get_pressed()[pygame.K_p] == 1:
                     self.firstStart = 0
+                    if   self.state == 2: self.state = 3
+                    elif self.state == 3: self.state = 2
                 if pygame.key.get_pressed()[pygame.K_r] == 1:
                     self.cellLife.resetGrid()
                     if self.state == 3: self.state = 2
@@ -163,7 +175,7 @@ class LifeGame:
                         elif self.speed > 5: self.speed -= 2
                         elif self.speed > 0:  self.speed -=1
                         self.message.append(self.speedString+str(120 - self.speed))
-                elif pygame.key.get_pressed()[pygame.K_s] == 1:
+                if pygame.key.get_pressed()[pygame.K_s] == 1:
                     if self.state == 3:
                         if   self.speed < 5: self.speed +=1
                         elif self.speed < 15: self.speed +=2
