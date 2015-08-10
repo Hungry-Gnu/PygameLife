@@ -12,30 +12,31 @@ RED      = ( 255,   0,   0)
 GREY     = ( 50,   50,  50)
 
 class CellLife:
-    def __init__(self,screen):
+    def __init__(self,screen,cellSize):
         self.alive = []
         self.dead = []
         self.screen = screen
-        self.x = int(self.screen.get_size()[0]/12.06)
-        self.y = int(self.screen.get_size()[1]/12.06)
-        self.width=10
-        self.height=10
-        self.margin=2
+        self.width = self.height = cellSize
+        self.margin = 1
+        self.row = int(self.screen.get_size()[0] / (cellSize+self.margin))
+        self.col = int(self.screen.get_size()[1] / (cellSize+self.margin))
+        print("col=",self.col)
+        print(self.margin)
         self.resetGrid()
                 
         self.bg = pygame.Surface((self.screen.get_size()[0], self.screen.get_size()[1]))
         self.bg.fill(BLACK)
-        for y in range(self.y):
-            for x in range(self.x):
+        for y in range(self.col):
+            for x in range(self.row):
                 pygame.draw.rect(self.bg,GREY,[ (self.margin+self.width)*x+self.margin,
                     (self.margin+self.height)*y+self.margin, self.width, self.height ])
         self.bg.convert()
                 
     def resetGrid(self):
         self.grid = []
-        for y in range(self.y):
+        for y in range(self.col):
             self.grid.append([])
-            for x in range(self.x):
+            for x in range(self.row):
                 self.grid[y].append(0) # Append a cell
         self.alive = []
         self.dead = []
@@ -57,9 +58,9 @@ class CellLife:
         x=pos[0] // (self.width+self.margin)
         y=pos[1] // (self.height+self.margin)
         # Set that location to one
-        if x > self.x-1: x = self.x-1
-        if y > self.y-1: y = self.y-1
-        if y < self.y and x < self.x:
+        if x > self.row-1: x = self.row-1
+        if y > self.col-1: y = self.col-1
+        if y < self.col and x < self.row:
             if make == 1:
                 self.grid[y][x]=1
                 if (x,y) not in self.alive:
@@ -76,15 +77,15 @@ class CellLife:
 
     def checkPos(self,cell,x,y,grid):
         x,y = (cell[0]+x), (cell[1]+y)
-        lenGridX, lenGridY = self.x-1, self.y-1
+        lenGridX, lenGridY = self.row-1, self.col-1
         if      (x < 0)        : x = lenGridX
         elif    (x > lenGridX) : x = 0
         if      (y < 0)        : y = lenGridY
         elif    (y > lenGridY) : y = 0
         return (x,y)
 
-        for y in range(self.y):
-            for x in range(self.x):
+        for y in range(self.col):
+            for x in range(self.row):
                 if (x,y) in self.alive:
                     self.drawSquare(x,y,RED)
                 else:
