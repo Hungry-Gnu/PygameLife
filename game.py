@@ -5,18 +5,14 @@
 # Email   : luke.nukem.jones@gmail.com #
 # License : GPLv3.0                    #
 ########################################
-
 import pygame
 import mitosis
 from random import randint
-
+###########################
 BLACK    = (   0,   0,   0)
 WHITE    = ( 255, 255, 255)
-GREEN    = (   0, 155,   0)
-LGREEN    = (   0, 255,   0)
-DREAD    = (   110, 0,   0)
-RED      = ( 255,   0,   0)
 GREY     = ( 50,   50,  50)
+###########################
 
 class LifeGame:
     def __init__(self):
@@ -29,29 +25,9 @@ class LifeGame:
         pygame.display.set_caption("Game of Life")
         self.clock = pygame.time.Clock()
         self.state = 1
-
+        self.enteredPattern = []
         self.cellLife = mitosis.CellLife(self.screen, 8)
         self.menuLife = mitosis.CellLife(self.screen, 5)
-
-        for pos in [(2, 0), (1, 0), (1, 1), (1, 2), (0, 1)]:
-            x = int(len(self.menuLife.grid[0])*0.2) + pos[0]
-            y = int(len(self.menuLife.grid)*0.4) + pos[1]
-            self.menuLife.grid[y][x] = 1
-            self.menuLife.alive.append((x,y))
-        # Cross
-        for pos in [(1, 0), (1, 1), (1, 2), (2, 1), (0, 1)]:
-            x = int(len(self.menuLife.grid[0])*0.5) + pos[0]
-            y = int(len(self.menuLife.grid)*0.8) + pos[1]
-            self.menuLife.grid[y][x] = 1
-            self.menuLife.alive.append((x,y))
-            self.menuLife.grid[y][x+4] = 1
-            self.menuLife.alive.append((x+4,y))
-        # Tetrinomo
-        for pos in [(1, 0), (1, 1), (1, 2), (0, 2), (2, 1)]:
-            x = int(len(self.menuLife.grid[0])*0.8) + pos[0]
-            y = int(len(self.menuLife.grid)*0.2) + pos[1]
-            self.menuLife.grid[y][x] = 1
-            self.menuLife.alive.append((x,y))
             
         self.font = pygame.font.Font(None, 42)
         self.instr = ['Press Enter to exit instructions','',
@@ -71,6 +47,7 @@ class LifeGame:
                          '0.02ms':2,'Realtime':1}
         self.speed = 3
         self.message = []
+        self.mainMenu()
     
     def printHelp(self):
         self.menuSurf.fill(BLACK)
@@ -83,24 +60,24 @@ class LifeGame:
         if self.enteredMainMenu == 1:
             self.menuLife.resetGrid()
             for pos in [(2, 0), (1, 0), (1, 1), (1, 2), (0, 1)]:
-                x = int(len(self.menuLife.grid[0])*0.2) + pos[0]
-                y = int(len(self.menuLife.grid)*0.4) + pos[1]
-                self.menuLife.grid[y][x] = 1
-                self.menuLife.alive.append((x,y))
-            # Cross
+                x = int(self.menuLife.getGridWidth()*0.2) + pos[0]
+                y = int(self.menuLife.getGridHeight()*0.4) + pos[1]
+                self.menuLife.setGridpos((x,y),1)
+                self.menuLife.addAlive((x,y))
+            # PULSAR!!!!
             for pos in [(1, 0), (1, 1), (1, 2), (2, 1), (0, 1)]:
-                x = int(len(self.menuLife.grid[0])*0.5) + pos[0]
-                y = int(len(self.menuLife.grid)*0.8) + pos[1]
-                self.menuLife.grid[y][x] = 1
-                self.menuLife.alive.append((x,y))
-                self.menuLife.grid[y][x+4] = 1
-                self.menuLife.alive.append((x+4,y))
+                x = int(self.menuLife.getGridWidth()*0.5) + pos[0]
+                y = int(self.menuLife.getGridHeight()*0.7) + pos[1]
+                self.menuLife.setGridpos((x-3,y),1)
+                self.menuLife.addAlive((x-3,y))
+                self.menuLife.setGridpos((x+3,y),1)
+                self.menuLife.addAlive((x+3,y))
             # Tetrinomo
             for pos in [(1, 0), (1, 1), (1, 2), (0, 2), (2, 1)]:
-                x = int(len(self.menuLife.grid[0])*0.8) + pos[0]
-                y = int(len(self.menuLife.grid)*0.2) + pos[1]
-                self.menuLife.grid[y][x] = 1
-                self.menuLife.alive.append((x,y))
+                x = int(self.menuLife.getGridWidth()*0.8) + pos[0]
+                y = int(self.menuLife.getGridHeight()*0.2) + pos[1]
+                self.menuLife.setGridpos((x,y),1)
+                self.menuLife.addAlive((x,y))
             self.enteredMainMenu = 0
             
     def printPaused(self):
@@ -116,6 +93,12 @@ class LifeGame:
             for i in range(len(self.message)):
                 text = self.font.render(self.message[i], 1, WHITE)
                 self.menuSurf.blit(text,(10,10+i*40))
+                
+    def printGen(self):
+        string = "Generation #"+str(self.cellLife.getGenCount())
+        text = self.font.render(string, 1, WHITE)
+        x = self.menuSurf.get_rect().centerx - text.get_rect().centerx
+        self.menuSurf.blit(text,(x,10))
 
     def main(self):
         framecount = 0
@@ -127,24 +110,24 @@ class LifeGame:
             # Menu State
             if self.state == 1:
                     self.menuSurf.fill(BLACK)
-                    if self.firstStart == 1 and framecount > 3:
-                        self.screen.fill(BLACK)
-                        self.menuLife.drawBG()
-                        self.menuLife.update()
+                    if self.firstStart == 1:
+                        ## Place holder. Will use for an intro
                         self.printHelp()
-                        framecount = 0
                     elif self.firstStart == 0:
+                        # Place holder, will use for a proper menu
                         self.mainMenu()
                         self.printHelp()
+                    if framecount > 3:
                         self.screen.fill(BLACK)
                         self.menuLife.drawBG()
                         self.menuLife.update()
                         #self.cellLife.paused()
+                        framecount = 0
                     self.screen.blit(self.menuSurf,(0,0))
             # Paused State    
             elif self.state == 2:
                     self.screen.fill(BLACK)
-                    if self.firstStart == 0:
+                    if self.firstStart == 0 and self.cellLife.getGenCount == 0:
                         self.printPaused()
                     else:
                         self.menuSurf.fill(BLACK)
@@ -164,6 +147,7 @@ class LifeGame:
                         msgTime = 0
                     else:
                         self.printMsg()
+                        self.printGen()
                         self.screen.blit(self.menuSurf,(0,0))
                         msgTime +=1
             # Game Tick
@@ -184,6 +168,7 @@ class LifeGame:
                     if pygame.mouse.get_pressed()[0] == 1:
                         self.cellLife.clicked(pos,1)
                         pygame.display.flip()
+                        #self.enteredPattern.append(pos)
                     elif pygame.mouse.get_pressed()[1] == 1 or pygame.mouse.get_pressed()[2] == 1:
                         self.cellLife.clicked(pos,0)
                         pygame.display.flip()

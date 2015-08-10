@@ -5,117 +5,141 @@
 # Email   : luke.nukem.jones@gmail.com #
 # License : GPLv3.0                    #
 ########################################
-
 import pygame
 #import mitosis
 from random import randint
-
+###########################
 BLACK    = (   0,   0,   0)
-WHITE    = ( 255, 255, 255)
 GREEN    = (   0, 155,   0)
-LGREEN    = (   0, 255,   0)
-DREAD    = (   110, 0,   0)
+LGREEN   = (   0, 255,   0)
+DREAD    = ( 110,   0,   0)
 RED      = ( 255,   0,   0)
-GREY     = ( 50,   50,  50)
-
+GREY     = (  50,  50,  50)
+###########################
 class CellLife:
-    def __init__(self,screen,cellSize):
-        self.alive = []
-        self.dead = []
-        self.screen = screen
-        self.width = self.height = cellSize
-        self.margin = 1
-        self.row = int(self.screen.get_size()[0] / (cellSize+self.margin))
-        self.col = int(self.screen.get_size()[1] / (cellSize+self.margin))
-        print("col=",self.col)
-        print(self.margin)
+    def __init__(self,screen, cellSize):
+        ''' Base "Game of Life" Class:
+            Must pass in a surface to draw to and the
+            cell size for the grid. Class will get the
+            rez from the surface, then set up the grid
+            and background image.'''
+        self.__alive = [] # The *alive* generation
+        self.__dead = [] # The cells to be killed off
+        self.__grid = [] # Array that keeps track of alive cells
+        self.__screen = screen
+        self.__width = self.__height = cellSize
+        self.__margin = 1
+        self.__row = int(self.__screen.get_size()[0] / (cellSize+self.__margin))
+        self.__col = int(self.__screen.get_size()[1] / (cellSize+self.__margin))
+        self.__prevGen = []
+        self.__genCount = 0
+        # Initialize
         self.resetGrid()
-                
-        self.bg = pygame.Surface((self.screen.get_size()[0], self.screen.get_size()[1]))
-        self.bg.fill(BLACK)
-        for y in range(self.col):
-            for x in range(self.row):
-                pygame.draw.rect(self.bg,GREY,[ (self.margin+self.width)*x+self.margin,
-                    (self.margin+self.height)*y+self.margin, self.width, self.height ])
-        self.bg.convert()
-                
+        # Sets up the background as a stored surface to prevent continuous looping.
+        self.__bg = pygame.Surface((self.__screen.get_size()[0], self.__screen.get_size()[1]))
+        self.__bg.fill(BLACK)
+        for y in range(self.__col):
+            for x in range(self.__row):
+                pygame.draw.rect(self.__bg,GREY,[ (self.__margin+self.__width)*x+self.__margin,
+                    (self.__margin+self.__height)*y+self.__margin, self.__width, self.__height ])
+        self.__bg.convert()
+    ########################################
+    def getGridWidth(self):
+        ''' Returns the width of the grid'''
+        return self.__row
+    def getGridHeight(self):
+        ''' Returns the height of the grid'''
+        return self.__col
+    def getGenCount(self):
+        ''' Get the current number of generation'''
+        return self.__genCount    
+    ########################################
+    def setGridpos(self,pos,var):
+        self.__grid[pos[1]][pos[0]] = var
+    def addAlive(self,pos):
+        self.__alive.append(pos)
+    ########################################            
     def resetGrid(self):
-        self.grid = []
-        for y in range(self.col):
-            self.grid.append([])
-            for x in range(self.row):
-                self.grid[y].append(0) # Append a cell
-        self.alive = []
-        self.dead = []
-                
+        self.__grid = []
+        for y in range(self.__col):
+            self.__grid.append([])
+            for x in range(self.__row):
+                self.__grid[y].append(0) # Append a cell
+        self.__alive = []
+        self.__dead = []
+        self.__prevGen = []
+        self.__genCount = 0
+    ########################################
     def paused(self):
         # change to a preset BG
         self.drawBG()
-        for cell in self.alive:
-            self.drawSquare(cell[0],cell[1],RED)
-                    
+        for cell in self.__alive:
+            self.__drawSquare(cell[0],cell[1],RED)
+    ########################################
     def drawBG(self):
-        self.screen.blit(self.bg, (0,0))
-
-    def drawSquare(self,x,y,colour):
-        pygame.draw.rect(self.screen,colour,[ (self.margin+self.width)*x+self.margin,
-            (self.margin+self.height)*y+self.margin, self.width, self.height ])
-
+        self.__screen.blit(self.__bg, (0,0))
+    ########################################
+    def __drawSquare(self,x,y,colour):
+        pygame.draw.rect(self.__screen,colour,[ (self.__margin+self.__width)*x+self.__margin,
+            (self.__margin+self.__height)*y+self.__margin, self.__width, self.__height ])
+    ########################################
     def clicked(self,pos,make):
-        x=pos[0] // (self.width+self.margin)
-        y=pos[1] // (self.height+self.margin)
+        x=pos[0] // (self.__width+self.__margin)
+        y=pos[1] // (self.__height+self.__margin)
         # Set that location to one
-        if x > self.row-1: x = self.row-1
-        if y > self.col-1: y = self.col-1
-        if y < self.col and x < self.row:
+        if x > self.__row-1: x = self.__row-1
+        if y > self.__col-1: y = self.__col-1
+        if y < self.__col and x < self.__row:
             if make == 1:
-                self.grid[y][x]=1
-                if (x,y) not in self.alive:
-                    self.alive.append((x,y))
-                self.drawSquare(x,y,RED)
+                self.__grid[y][x]=1
+                if (x,y) not in self.__alive:
+                    self.__alive.append((x,y))
+                self.__drawSquare(x,y,RED)
             elif make == 0:
-                self.grid[y][x]=0
+                self.__grid[y][x]=0
                 try:
-                    cell = self.alive.index((x,y))
-                    self.alive.pop(cell)
+                    cell = self.__alive.index((x,y))
+                    self.__alive.pop(cell)
                 except:
                     pass
-                self.drawSquare(x,y,GREY)
-
-    def checkPos(self,cell,x,y,grid):
+                self.__drawSquare(x,y,GREY)
+    ########################################
+    def __checkPos(self,cell,x,y,grid):
         x,y = (cell[0]+x), (cell[1]+y)
-        lenGridX, lenGridY = self.row-1, self.col-1
+        lenGridX, lenGridY = self.__row-1, self.__col-1
         if      (x < 0)        : x = lenGridX
         elif    (x > lenGridX) : x = 0
         if      (y < 0)        : y = lenGridY
         elif    (y > lenGridY) : y = 0
         return (x,y)
 
-        for y in range(self.col):
-            for x in range(self.row):
-                if (x,y) in self.alive:
-                    self.drawSquare(x,y,RED)
+        for y in range(self.__col):
+            for x in range(self.__row):
+                if (x,y) in self.__alive:
+                    self.__drawSquare(x,y,RED)
                 else:
-                    self.drawSquare(x,y,GREY)
-        
+                    self.__drawSquare(x,y,GREY)
+    ########################################
     def update(self):
-        for cell in self.alive:
-            self.grid[cell[1]][cell[0]] = 1
-            self.drawSquare(cell[0],cell[1],GREEN)
-        for cell in self.dead:
-            self.grid[cell[1]][cell[0]] = 0
-            self.drawSquare(cell[0],cell[1],GREY)
+        if self.__prevGen != self.__alive:
+            self.__genCount +=1
+        for cell in self.__alive:
+            self.__grid[cell[1]][cell[0]] = 1
+            self.__drawSquare(cell[0],cell[1],GREEN)
+        for cell in self.__dead:
+            self.__grid[cell[1]][cell[0]] = 0
+            self.__drawSquare(cell[0],cell[1],GREY)
         
-        self.dead = []
+        self.__dead = []
         nextGen =[]
         deadDict = {}
-        for cell in set(self.alive):
+        for cell in set(self.__alive):
             nCount = 0
             for y in(-1,0,1):
                 for x in(-1,0,1):
-                    tempCell = self.checkPos(cell,x,y,self.grid)
+                    tempCell = self.__checkPos(cell,x,y,self.__grid)
                     if cell != tempCell:
-                        cellAliveResult = self.grid[tempCell[1]][tempCell[0]]
+                        cellAliveResult = self.__grid[tempCell[1]][tempCell[0]]
                         # If it's a dead cell, check it.
                         if cellAliveResult == 1:
                             nCount += 1 
@@ -126,12 +150,13 @@ class CellLife:
                                 deadDict[tempCell] = [1]
             if nCount in(2,3):
                 nextGen.append(cell)
-                self.drawSquare(cell[0],cell[1],GREEN)
+                self.__drawSquare(cell[0],cell[1],GREEN)
             else:
-                self.dead.append(cell)
-                self.drawSquare(cell[0],cell[1],DREAD)
+                self.__dead.append(cell)
+                self.__drawSquare(cell[0],cell[1],DREAD)
         for cell in deadDict:
             if deadDict[cell][0] == 3:
                 nextGen.append(cell)
-                self.drawSquare(cell[0],cell[1],LGREEN)
-        self.alive = nextGen
+                self.__drawSquare(cell[0],cell[1],LGREEN)
+        self.__prevGen = self.__alive
+        self.__alive = nextGen
