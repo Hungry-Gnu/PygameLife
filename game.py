@@ -148,7 +148,7 @@ class LifeGame:
             
     def speedDown(self):
         if self.state == 'running':
-            if   self.speed > 120: self.speed +=20
+            if   self.speed > 120: self.speed -=20
             elif self.speed > 30: self.speed -= 10
             elif self.speed > 15: self.speed -= 5
             elif self.speed > 5: self.speed -= 2
