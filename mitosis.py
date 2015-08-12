@@ -6,7 +6,6 @@
 # License : GPLv3.0                    # drawBG() update() clicked() paused()
 ########################################
 import pygame
-#import mitosis
 from random import randint
 ###########################
 BLACK    = (   0,   0,   0)
