@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-########################################
-#              PyGameLife              #
-# Author  : Luke "Nukem" Jones         #
-# Email   : luke.nukem.jones@gmail.com #
-# License : GPLv3.0                    #
+######################################## This .py can be used for almost anything!
+#              PyGameLife              # All that is required is a screen and cell
+# Author  : Luke "Nukem" Jones         # passed to the class on creation,and then
+# Email   : luke.nukem.jones@gmail.com # use of the functions:
+# License : GPLv3.0                    # drawBG() update() clicked() paused()
 ########################################
 import pygame
-#import mitosis
 from random import randint
 ###########################
 BLACK    = (   0,   0,   0)
@@ -54,9 +53,9 @@ class CellLife:
         ''' Get the current number of generation'''
         return self.__genCount    
     ########################################
-    def setGridpos(self,pos,var):
-        self.__grid[pos[1]][pos[0]] = var
     def addAlive(self,pos):
+        ''' Directly add an alive cell. requires an (x,y) coord '''
+        self.__grid[pos[1]][pos[0]] = 1
         self.__alive.append(pos)
     ########################################            
     def resetGrid(self):
